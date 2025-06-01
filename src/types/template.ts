@@ -4,9 +4,10 @@ export type Template = {
     id: string;
     name: string;
     category: string;
+    imagePath?: string;
     type: TemplateType;
     command?: string;
     templatePath?: string;
-    autoCreateRepo?: boolean;
     setupCommand?: string;
+    autoCreateRepo?: boolean;
 };

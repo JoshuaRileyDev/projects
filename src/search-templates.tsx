@@ -1,4 +1,5 @@
-import { List, ActionPanel, Action, Icon } from "@raycast/api";
+import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
+import { LocalStorage } from "@raycast/api";
 import { useState, useEffect } from "react";
 import getCategories from "./tools/getCategories";
 import getAllTemplates from "./tools/getAllTemplates";
@@ -46,11 +47,34 @@ export default function Command() {
             <List.Item
                 key={template.name}
                 title={template.name}
-                icon={template.templatePath ? "📂" : "💻"}
+                icon={template.type === "template" ? "📂" : "💻"}
                 actions={
                     <ActionPanel>
                         <Action.Push title="Edit Template" icon={Icon.Pencil} target={<EditTemplateForm template={template} />} />
+                        <Action
+                            title="Delete Template"
+                            icon={Icon.Trash}
+                            style={Action.Style.Destructive}
+                            onAction={async () => {
+                                try {
+                                    const existingTemplates = await getAllTemplates();
+                                    const updatedTemplates = existingTemplates.filter(t => t.id !== template.id);
+                                    await LocalStorage.setItem("templates", JSON.stringify(updatedTemplates));
+                                    setTemplates(updatedTemplates);
+                                    await showToast({
+                                        title: "Template Deleted",
+                                        style: Toast.Style.Success,
+                                    });
+                                } catch (error) {
+                                    await showToast({
+                                        title: "Failed to Delete Template",
+                                        style: Toast.Style.Failure,
+                                    });
+                                }
+                            }}
+                        />
                     </ActionPanel>
+
                 }
             />
         ))}

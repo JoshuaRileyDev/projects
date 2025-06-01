@@ -55,6 +55,7 @@ export default function CreateTemplateForm() {
                     title="Template Path"
                     canChooseDirectories
                     canChooseFiles={false}
+                    allowMultipleSelection={false}
                     info="Select a template folder"
                 />
         )}

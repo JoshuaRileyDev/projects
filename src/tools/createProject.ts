@@ -63,7 +63,11 @@ export default async function createProject(input: Input) {
         input.template.templatePath != null &&
         input.template.templatePath != undefined
     ) {
-        fs.cpSync(input.template.templatePath, projectPath, { recursive: true });
+        console.log("copying template");
+        const templatePath = Array.isArray(input.template.templatePath) 
+            ? input.template.templatePath[0] 
+            : input.template.templatePath;
+        fs.cpSync(templatePath, projectPath, { recursive: true });
         const files = fs.readdirSync(projectPath);
         const replaceInFile = (filePath: string) => {
             console.log("filePath", filePath);
@@ -124,4 +128,13 @@ export default async function createProject(input: Input) {
     }
 
     openProject({ project: project });
+
+    if (input.template.setupCommand != "" && input.template.setupCommand != null && input.template.setupCommand != undefined) {
+        const command = `/bin/zsh -ilc "${input.template.setupCommand.replaceAll('{projectName}', name).replaceAll('{projectSlug}', getSlug(name))}"`;
+        const options = {
+            cwd: projectPath,
+            shell: "/bin/zsh",
+        };
+        execSync(command, options);
+    }
 }

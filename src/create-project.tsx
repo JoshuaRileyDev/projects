@@ -1,4 +1,4 @@
-import { Form, ActionPanel, LocalStorage, Action, Grid } from "@raycast/api";
+import { Form, ActionPanel, LocalStorage, Action, Grid, showToast, Toast } from "@raycast/api";
 import { Category } from "./types/category";
 import { useEffect, useState } from "react";
 import { Template } from "./types/template";
@@ -9,6 +9,7 @@ type Values = {
   name: string;
   category: string;
   template: Template;
+  createRepo: boolean;
 };
 
 export default function Command() {
@@ -41,13 +42,23 @@ export default function Command() {
     const name = values.name;
     const category = values.category;
     const createRepo = values.createRepo;
+    const toast = await showToast({
+      style: Toast.Style.Animated,
+      title: "Creating project",
+    });
 
-    createProject({
+    console.log(values.template);
+
+    await createProject({
       name: name,
       category: category,
       template: values.template,
       autoCreateRepo: createRepo,
     });
+
+    toast.title = "Project created";
+    toast.message = name;
+    toast.style = Toast.Style.Success;
   }
 
   return (

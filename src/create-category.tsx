@@ -1,15 +1,12 @@
 import { Form, ActionPanel, Action, showToast, LocalStorage, Toast } from "@raycast/api";
 import { createCategoryFolder, ensureAllCategoryFolders } from "./utils/folders";
-import { Category, CategoryType } from "./types/category";
-import { useState } from "react";
 
 export default function Command() {
-  const [selectedType, setSelectedType] = useState<CategoryType>("command");
-  async function handleSubmit(values: Category) {
+  async function handleSubmit({ name, folderName, defaultAppPath, imagePath, autoCreateRepo }: { name: string; folderName: string; defaultAppPath: string; imagePath: string; autoCreateRepo: boolean }) {
     try {
 
       // Create folder for the new category
-      await createCategoryFolder(values.name);
+      await createCategoryFolder(name);
 
       // Get existing categories or initialize empty array
       const existingCategories = JSON.parse((await LocalStorage.getItem("categories")) || "[]");
@@ -18,10 +15,11 @@ export default function Command() {
       await ensureAllCategoryFolders(existingCategories);
 
       // Add new category
-      const updatedCategories = [...existingCategories, values];
+      const updatedCategories = [...existingCategories, { name, folderName, defaultAppPath, imagePath, autoCreateRepo }];
 
       // Save back to storage
       await LocalStorage.setItem("categories", JSON.stringify(updatedCategories));
+
 
       showToast({ title: "Category Created", message: "New category has been saved" });
     } catch (error) {
@@ -44,32 +42,17 @@ export default function Command() {
       <Form.Description text="Create a new category by filling out the details below." />
       <Form.TextField id="name" title="Category Name" placeholder="Enter category name" autoFocus />
       <Form.TextField id="folderName" title="Folder Name" placeholder="Enter folder name" />
-      <Form.Dropdown id="type" title="Category Type" onChange={(newValue) => setSelectedType(newValue as CategoryType)}>
-        <Form.Dropdown.Item value="command" title="Run a Command" icon="⌘" />
-        <Form.Dropdown.Item value="template" title="Use a Template" icon="📄" />
-      </Form.Dropdown>
-      {selectedType === "command" && <Form.TextField id="command" title="Command" placeholder="Enter command" />}
-      {selectedType === "template" && (
-        <Form.FilePicker
-          id="templatePath"
-          title="Template Path"
-          canChooseDirectories
-          canChooseFiles={false}
-          info="Select a template folder for the category"
-        />
-      )}
+      
       <Form.FilePicker
         id="imagePath"
         title="Category Image"
-        allowMultiple={false}
-        type="public.image"
+        allowMultipleSelection={false}
         info="Select an image file for the category"
       />
       <Form.FilePicker
         id="defaultAppPath"
         title="Default Application"
-        allowMultiple={false}
-        type="com.apple.application-bundle"
+        allowMultipleSelection={false}
         info="Select the default application for this category"
       />
       <Form.Checkbox
@@ -77,7 +60,6 @@ export default function Command() {
         label="Auto Create Repository"
         info="Automatically create a repository for the category"
       />
-      <Form.TextField id="setupCommand" title="Setup Command" placeholder="Enter setup command" />
     </Form>
   );
 }

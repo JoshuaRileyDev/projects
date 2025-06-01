@@ -61,8 +61,9 @@ export default function EditTemplateForm(props: { template: Template }) {
                     title="Template Path"
                     canChooseDirectories
                     canChooseFiles={false}
+                    allowMultipleSelection={false}
                     info="Select a template folder"
-                    defaultValue={props.template.templatePath ? [props.template.templatePath] : undefined}
+                    defaultValue={Array.isArray(props.template.templatePath) ? props.template.templatePath : props.template.templatePath ? [props.template.templatePath] : undefined}
                 />
         )}
         
