@@ -1,4 +1,4 @@
-import { getPreferenceValues } from "@raycast/api";
+import { AI, getPreferenceValues } from "@raycast/api";
 import path from "path";
 import fs from "fs";
 import { execSync } from "child_process";
@@ -24,6 +24,11 @@ type Input = {
     autoCreateRepo: boolean;
 
     /**
+     * The description of the project. This is completely optional.
+     */
+    description: string;
+
+    /**
      * The template to use for the project, use the getAllTemplates tool to get the template from the list of templates.
      */
     template: Template;
@@ -32,6 +37,7 @@ type Input = {
 export default async function createProject(input: Input) {
     const name = input.name;
     const category = input.category;
+    const description = input.description;
     const preferences = getPreferenceValues<Preferences>();
     const categoryPath = path.join(preferences.projectsFolder, category);
     const projectPath = path.join(categoryPath, name);
@@ -70,27 +76,25 @@ export default async function createProject(input: Input) {
         fs.cpSync(templatePath, projectPath, { recursive: true });
         const files = fs.readdirSync(projectPath);
         const replaceInFile = (filePath: string) => {
-            console.log("filePath", filePath);
             if (fs.statSync(filePath).isDirectory()) {
-                console.log("isDirectory");
                 const subFiles = fs.readdirSync(filePath);
                 if (filePath.includes('{projectName}') || filePath.includes('{projectSlug}')) {
-                    console.log("renaming directory");
+                    
                     const newName = filePath
                         .replaceAll('{projectName}', name)
                         .replaceAll('{projectSlug}', getSlug(name));
                     fs.renameSync(filePath, newName);
                 }
-                console.log("looping through subFiles");
+                
                 subFiles.forEach(subFile => {
-                    console.log("directory subFile", subFile);
+                    
                     const subPath = path.join(filePath.replaceAll('{projectName}', name).replaceAll('{projectSlug}', getSlug(name)), subFile);
                     if (subFile.includes('{projectName}') || subFile.includes('{projectSlug}')) {
-                        console.log("renaming");
+                       
                         const newName = subFile
                             .replaceAll('{projectName}', name)
                             .replaceAll('{projectSlug}', getSlug(name));
-                        console.log("newName", newName);
+                        
                         fs.renameSync(subPath, path.join(filePath.replaceAll('{projectName}', name).replaceAll('{projectSlug}', getSlug(name)), newName));
                         replaceInFile(path.join(filePath.replaceAll('{projectName}', name).replaceAll('{projectSlug}', getSlug(name)), newName));
                     } else {
@@ -98,7 +102,7 @@ export default async function createProject(input: Input) {
                     }
                 });
             } else {
-                console.log("isFile");
+               
                 let content = fs.readFileSync(filePath, 'utf8');
                 const fileName = path.basename(filePath);
                 let newPath = filePath;
@@ -125,6 +129,41 @@ export default async function createProject(input: Input) {
 
     if (input.autoCreateRepo) {
         createGitRepo(project);
+    }
+
+    console.log("description", description);
+
+    if (description != "" && description != null && description != undefined) {
+        
+        const examplePrompt = fs.readFileSync(path.join(__dirname, "assets/example-prd.txt"), "utf8");
+        
+        const fullPrompt = `
+        Take the following description and create a PRD for the project, return only the PRD, no other text:
+
+        ${description}
+
+        Example PRD:
+
+        ${examplePrompt}
+        
+        `;
+
+        const result = await AI.ask(fullPrompt, {
+            model: AI.Model.Anthropic_Claude_Sonnet
+        });
+
+        //create .taskmaster folder if it doesn't exist
+        if (!fs.existsSync(path.join(projectPath, ".taskmaster"))) {
+            fs.mkdirSync(path.join(projectPath, ".taskmaster"), { recursive: true });
+        }
+
+        // create .taskmaster/docs folder if it doesn't exist
+        if (!fs.existsSync(path.join(projectPath, ".taskmaster", "docs"))) {
+            fs.mkdirSync(path.join(projectPath, ".taskmaster", "docs"), { recursive: true });
+        }
+
+        // create .taskmaster/prd.md file with the result
+        fs.writeFileSync(path.join(projectPath, ".taskmaster", "docs", "prd.txt"), result);
     }
 
     openProject({ project: project });

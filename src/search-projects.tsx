@@ -20,13 +20,13 @@ import Project from "./types/project";
 import ProjectSettings from "./types/projectSettings";
 import { createGitRepo, getCoolifyProjects, createCoolifyProject } from "./utils/functions";
 import CoolifyProject from "./types/coolifyProject";
-import { setWindowSize } from "./utils/setWindowSize";
 import EditProjectSettingsForm from "./forms/editProjectSettingsForm";
 import getGithubRepoRemote from "./tools/getGithubRepoRemote";
 import CoolifyApp from "./types/coolifyApp";
 import getAllCoolifyApps from "./tools/getAllCoolifyApps";
 import getAllTemplates from "./tools/getAllTemplates";
-import createTemplate from "./tools/createTemplate";
+import openProject from "./tools/openProject";
+
 interface Preferences {
   projectsFolder: string;
 }
@@ -189,86 +189,6 @@ export default function Command() {
       console.error(`Error getting git repo URL for ${project.name}:`, error);
       return null;
     }
-  }
-
-  function findXcodeProject(dirPath: string): string | null {
-    const files = fs.readdirSync(dirPath);
-
-    // First check current directory for workspace files
-    const workspaceFile = files.find((file) => file.endsWith(".xcworkspace"));
-    if (workspaceFile) {
-      return path.join(dirPath, workspaceFile);
-    }
-
-    // Then check for project files
-    const projectFile = files.find((file) => file.endsWith(".xcodeproj"));
-    if (projectFile) {
-      return path.join(dirPath, projectFile);
-    }
-
-    // Recursively check subdirectories
-    for (const file of files) {
-      const fullPath = path.join(dirPath, file);
-      if (fs.statSync(fullPath).isDirectory()) {
-        const found = findXcodeProject(fullPath);
-        if (found) return found;
-      }
-    }
-
-    return null;
-  }
-
-  function checkIfXcodePackage(dirPath: string): boolean {
-    const files = fs.readdirSync(dirPath);
-    return files.some((file) => file === "Package.swift");
-  }
-
-  function checkIfSkip(dirPath: string): boolean {
-    const files = fs.readdirSync(dirPath);
-    return files.some((file) => file === "Skip.env");
-  }
-
-  function checkIfRaycastProject(dirPath: string): boolean {
-    const files = fs.readdirSync(dirPath);
-    return files.some((file) => file === "raycast-env.d.ts");
-  }
-
-  async function handleOpenProject(project: Project) {
-    const category = categories.find((c) => c.name === project.categoryName);
-    if (!category) return;
-
-    const lastOpenedTimes = JSON.parse((await LocalStorage.getItem("lastOpenedTimes")) || "{}") as Record<
-      string,
-      number
-    >;
-    lastOpenedTimes[project.fullPath] = Date.now();
-    await LocalStorage.setItem("lastOpenedTimes", JSON.stringify(lastOpenedTimes));
-
-    loadCategoriesAndProjects();
-
-    if (checkIfRaycastProject(project.fullPath)) {
-      open(project.fullPath, category.defaultAppPath);
-    } else if (checkIfSkip(project.fullPath)) {
-      const xcodePath = findXcodeProject(project.fullPath + "/Darwin");
-      // find .xcodeproj in the folder
-      const file = fs.readdirSync(project.fullPath + "/Darwin").find((file) => file.endsWith(".xcodeproj"));
-      if (file) {
-        open(project.fullPath + "/Darwin/" + file, category.defaultAppPath);
-      }
-    } else {
-      if (checkIfXcodePackage(project.fullPath)) {
-        open(project.fullPath, category.defaultAppPath);
-      } else {
-        if (findXcodeProject(project.fullPath) != null) {
-          const xcodePath = findXcodeProject(project.fullPath);
-          open(xcodePath, category.defaultAppPath);
-        } else {
-          open(project.fullPath, category.defaultAppPath);
-        }
-      }
-    }
-
-    await setWindowSize(category.defaultAppPath);
   }
 
   function pushToGitHub(project: Project, message: string) {
@@ -529,7 +449,7 @@ export default function Command() {
           ]}
           actions={
             <ActionPanel>
-              <Action title="Open Project" onAction={() => handleOpenProject(project)}
+              <Action title="Open Project" onAction={() => openProject({ project: project })}
                 shortcut={{ modifiers: ["cmd"], key: "o" }}
                 icon={Icon.Window}
               />

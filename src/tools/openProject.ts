@@ -76,15 +76,20 @@ export default async function openProject(input: Input) {
             open(input.project.fullPath + "/Darwin/" + file, category.defaultAppPath);
         }
     } else {
-        if (checkIfXcodePackage(input.project.fullPath)) {
-            open(input.project.fullPath, category.defaultAppPath);
-        } else {
-            if (findXcodeProject(input.project.fullPath) != null) {
-                const xcodePath = findXcodeProject(input.project.fullPath);
-                open(xcodePath, category.defaultAppPath);
-            } else {
+        console.log(category.defaultAppPath);
+        if (category.defaultAppPath.includes("Xcode")) {
+            if (checkIfXcodePackage(input.project.fullPath)) {
                 open(input.project.fullPath, category.defaultAppPath);
+            } else {
+                if (findXcodeProject(input.project.fullPath) != null) {
+                    const xcodePath = findXcodeProject(input.project.fullPath);
+                    open(xcodePath, category.defaultAppPath);
+                } else {
+                    open(input.project.fullPath, category.defaultAppPath);
+                }
             }
+        } else {
+            open(input.project.fullPath, category.defaultAppPath);
         }
     }
 }

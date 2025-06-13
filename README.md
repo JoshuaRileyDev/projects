@@ -11,3 +11,6 @@ Here are just a few of the features:
 - Filter by aliases
 - Create or auto-create Github repositories.
 - Work with Coolify
+- AI-generated PRD from project description
+- Automatic creation of `.taskmaster` folder structure
+- Integration with Taskmaster task management

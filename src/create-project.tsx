@@ -42,6 +42,7 @@ export default function Command() {
     const name = values.name;
     const category = values.category;
     const createRepo = values.createRepo;
+    const description = values.description;
     const toast = await showToast({
       style: Toast.Style.Animated,
       title: "Creating project",
@@ -54,6 +55,7 @@ export default function Command() {
       category: category,
       template: values.template,
       autoCreateRepo: createRepo,
+      description: description
     });
 
     toast.title = "Project created";
@@ -86,6 +88,7 @@ export default function Command() {
                         <Form.Dropdown.Item key={template.id} title={template.name} value={template.id} icon={template.templatePath ? "📂" : "💻"} />
                       ))}
                     </Form.Dropdown>
+                    <Form.TextField id="description" title="Enter Project Description" placeholder="" defaultValue="" />
                     <Form.Checkbox id="createRepo" label="Create Git Repository" defaultValue={false} />
                   </Form>
                 }
