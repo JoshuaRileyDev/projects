@@ -10,26 +10,28 @@ export default function EditProjectSettingsForm(props: { projectSettings: Projec
           <Action.SubmitForm
             title="Save Settings"
             onSubmit={async () => {
-                const allProjectSettings = JSON.parse((await LocalStorage.getItem<string>("projectSettings") || "[]")) as ProjectSettings[];
-                const projectSetting = allProjectSettings.find((p) => p.projectID === props.projectSettings.projectID);
-                if (projectSetting) {
-                    projectSetting.initialVersion = props.projectSettings.initialVersion;
-                }
-                await LocalStorage.setItem("projectSettings", JSON.stringify(allProjectSettings));
-                popToRoot();
+              const allProjectSettings = JSON.parse(
+                (await LocalStorage.getItem<string>("projectSettings")) || "[]",
+              ) as ProjectSettings[];
+              const projectSetting = allProjectSettings.find((p) => p.projectID === props.projectSettings.projectID);
+              if (projectSetting) {
+                projectSetting.initialVersion = props.projectSettings.initialVersion;
+              }
+              await LocalStorage.setItem("projectSettings", JSON.stringify(allProjectSettings));
+              popToRoot();
             }}
           />
         </ActionPanel>
       }
     >
-        <Form.TextField
-            id="initialVersion"
-            title="Set Initial Version"
-            defaultValue={props.projectSettings.initialVersion}
-            onChange={(value) => {
-                props.projectSettings.initialVersion = value;
-            }}
-        />
+      <Form.TextField
+        id="initialVersion"
+        title="Set Initial Version"
+        defaultValue={props.projectSettings.initialVersion}
+        onChange={(value) => {
+          props.projectSettings.initialVersion = value;
+        }}
+      />
     </Form>
   );
 }

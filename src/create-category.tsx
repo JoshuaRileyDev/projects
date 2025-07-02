@@ -2,9 +2,20 @@ import { Form, ActionPanel, Action, showToast, LocalStorage, Toast } from "@rayc
 import { createCategoryFolder, ensureAllCategoryFolders } from "./utils/folders";
 
 export default function Command() {
-  async function handleSubmit({ name, folderName, defaultAppPath, imagePath, autoCreateRepo }: { name: string; folderName: string; defaultAppPath: string; imagePath: string; autoCreateRepo: boolean }) {
+  async function handleSubmit({
+    name,
+    folderName,
+    defaultAppPath,
+    imagePath,
+    autoCreateRepo,
+  }: {
+    name: string;
+    folderName: string;
+    defaultAppPath: string;
+    imagePath: string;
+    autoCreateRepo: boolean;
+  }) {
     try {
-
       // Create folder for the new category
       await createCategoryFolder(name);
 
@@ -15,11 +26,13 @@ export default function Command() {
       await ensureAllCategoryFolders(existingCategories);
 
       // Add new category
-      const updatedCategories = [...existingCategories, { name, folderName, defaultAppPath, imagePath, autoCreateRepo }];
+      const updatedCategories = [
+        ...existingCategories,
+        { name, folderName, defaultAppPath, imagePath, autoCreateRepo },
+      ];
 
       // Save back to storage
       await LocalStorage.setItem("categories", JSON.stringify(updatedCategories));
-
 
       showToast({ title: "Category Created", message: "New category has been saved" });
     } catch (error) {
@@ -42,7 +55,7 @@ export default function Command() {
       <Form.Description text="Create a new category by filling out the details below." />
       <Form.TextField id="name" title="Category Name" placeholder="Enter category name" autoFocus />
       <Form.TextField id="folderName" title="Folder Name" placeholder="Enter folder name" />
-      
+
       <Form.FilePicker
         id="imagePath"
         title="Category Image"

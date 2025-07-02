@@ -3,6 +3,6 @@ type Project = {
   categoryName: string;
   fullPath: string;
   aliases: string[];
-}
+};
 
 export default Project;

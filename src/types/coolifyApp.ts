@@ -4,6 +4,6 @@ type CoolifyApp = {
   name: string;
   git_repository: string;
   description: string;
-}
+};
 
 export default CoolifyApp;

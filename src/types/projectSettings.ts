@@ -1,8 +1,6 @@
-
-
 type ProjectSettings = {
-    projectID: string;
-    initialVersion: string;
-}
+  projectID: string;
+  initialVersion: string;
+};
 
 export default ProjectSettings;

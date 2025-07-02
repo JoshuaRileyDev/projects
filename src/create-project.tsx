@@ -55,7 +55,7 @@ export default function Command() {
       category: category,
       template: values.template,
       autoCreateRepo: createRepo,
-      description: description
+      description: description,
     });
 
     toast.title = "Project created";
@@ -78,15 +78,30 @@ export default function Command() {
                   <Form
                     actions={
                       <ActionPanel>
-                        <Action.SubmitForm onSubmit={(values) => handleSubmit({ ...values, category: category.name, template: templates.find((template) => template.id === values.template) })} />
+                        <Action.SubmitForm
+                          onSubmit={(values) =>
+                            handleSubmit({
+                              ...values,
+                              category: category.name,
+                              template: templates.find((template) => template.id === values.template),
+                            })
+                          }
+                        />
                       </ActionPanel>
                     }
                   >
                     <Form.TextField id="name" title="Enter Project Name" placeholder="" defaultValue="" />
                     <Form.Dropdown id="template" title="Select Template">
-                      {templates.filter((template) => template.category === category.name).map((template) => (
-                        <Form.Dropdown.Item key={template.id} title={template.name} value={template.id} icon={template.templatePath ? "📂" : "💻"} />
-                      ))}
+                      {templates
+                        .filter((template) => template.category === category.name)
+                        .map((template) => (
+                          <Form.Dropdown.Item
+                            key={template.id}
+                            title={template.name}
+                            value={template.id}
+                            icon={template.templatePath ? "📂" : "💻"}
+                          />
+                        ))}
                     </Form.Dropdown>
                     <Form.TextField id="description" title="Enter Project Description" placeholder="" defaultValue="" />
                     <Form.Checkbox id="createRepo" label="Create Git Repository" defaultValue={false} />

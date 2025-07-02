@@ -16,7 +16,7 @@ export async function createCategoryFolder(categoryName: string) {
   return categoryPath;
 }
 
-export async function ensureAllCategoryFolders(categories: { name: string, folderName: string }[]) {
+export async function ensureAllCategoryFolders(categories: { name: string; folderName: string }[]) {
   for (const category of categories) {
     await createCategoryFolder(category.folderName);
   }

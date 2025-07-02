@@ -1,3 +1,3 @@
 export function getSlug(name: string) {
-    return name.toLowerCase().replace(/ /g, "-");
+  return name.toLowerCase().replace(/ /g, "-");
 }

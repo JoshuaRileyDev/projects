@@ -19,24 +19,30 @@ export default function Command() {
     const initializeData = async () => {
       const projects = await getAllProjects();
       setProjects(projects);
-      
+
       // Get last opened times
-      const lastOpenedTimes = JSON.parse((await LocalStorage.getItem("lastOpenedTimes")) || "{}") as Record<string, number>;
-      
+      const lastOpenedTimes = JSON.parse((await LocalStorage.getItem("lastOpenedTimes")) || "{}") as Record<
+        string,
+        number
+      >;
+
       // Find most recently opened project
-      const mostRecentProject = projects.reduce((recent, project) => {
-        const lastOpened = lastOpenedTimes[project.fullPath] || 0;
-        if (!recent || lastOpened > lastOpenedTimes[recent.fullPath] || 0) {
-          return project;
-        }
-        return recent;
-      }, null as Project | null);
+      const mostRecentProject = projects.reduce(
+        (recent, project) => {
+          const lastOpened = lastOpenedTimes[project.fullPath] || 0;
+          if (!recent || lastOpened > lastOpenedTimes[recent.fullPath] || 0) {
+            return project;
+          }
+          return recent;
+        },
+        null as Project | null,
+      );
 
       if (mostRecentProject) {
         setSelectedProject(mostRecentProject.name);
         await loadReleases(mostRecentProject.name);
       }
-      
+
       setLoading(false);
     };
 
@@ -63,30 +69,32 @@ export default function Command() {
 
   const getReleaseMarkdown = (release: Release) => {
     let markdown = `# What's new in v${release.version}\n\n`;
-    const entries = releaseEntries.filter(entry => entry.releaseID === release.id && entry.projectID === selectedProject);
+    const entries = releaseEntries.filter(
+      (entry) => entry.releaseID === release.id && entry.projectID === selectedProject,
+    );
     console.log(entries);
     if (entries.length > 0) {
-      const additionEntries = entries.filter(entry => entry.entryType === "Addition");
-      const improvementEntries = entries.filter(entry => entry.entryType === "Improvement");
-      const bugfixEntries = entries.filter(entry => entry.entryType === "Bug Fix");
+      const additionEntries = entries.filter((entry) => entry.entryType === "Addition");
+      const improvementEntries = entries.filter((entry) => entry.entryType === "Improvement");
+      const bugfixEntries = entries.filter((entry) => entry.entryType === "Bug Fix");
 
       if (additionEntries.length > 0) {
         markdown += "\n## ✨ New\n\n";
-        additionEntries.forEach(entry => {
+        additionEntries.forEach((entry) => {
           markdown += `- ${entry.description}\n`;
         });
       }
 
       if (improvementEntries.length > 0) {
         markdown += "\n## 💎 Improvements\n\n";
-        improvementEntries.forEach(entry => {
+        improvementEntries.forEach((entry) => {
           markdown += `- ${entry.description}\n`;
         });
       }
 
       if (bugfixEntries.length > 0) {
         markdown += "\n## 🐞 Fixes\n\n";
-        bugfixEntries.forEach(entry => {
+        bugfixEntries.forEach((entry) => {
           markdown += `- ${entry.description}\n`;
         });
       }
@@ -103,11 +111,7 @@ export default function Command() {
       navigationTitle="Search Releases"
       searchBarPlaceholder="Search releases by project..."
       searchBarAccessory={
-        <List.Dropdown
-          tooltip="Select Project"
-          value={selectedProject}
-          onChange={loadReleases}
-        >
+        <List.Dropdown tooltip="Select Project" value={selectedProject} onChange={loadReleases}>
           {projects.map((project) => (
             <List.Dropdown.Item
               key={project.categoryName + "-" + project.name}
@@ -125,10 +129,7 @@ export default function Command() {
           subtitle={release.released ? "Released" : "Unreleased"}
           actions={
             <ActionPanel>
-              <Action.Push
-                title="View Release Notes"
-                target={<Detail markdown={getReleaseMarkdown(release)} />}
-              />
+              <Action.Push title="View Release Notes" target={<Detail markdown={getReleaseMarkdown(release)} />} />
             </ActionPanel>
           }
         />

@@ -18,13 +18,12 @@ import path from "path";
 import { execSync } from "child_process";
 import Project from "./types/project";
 import ProjectSettings from "./types/projectSettings";
-import { createGitRepo, getCoolifyProjects, createCoolifyProject } from "./utils/functions";
+import { createGitRepo, getCoolifyProjects, createCoolifyProject, deployToCoolify } from "./utils/functions";
 import CoolifyProject from "./types/coolifyProject";
 import EditProjectSettingsForm from "./forms/editProjectSettingsForm";
 import getGithubRepoRemote from "./tools/getGithubRepoRemote";
 import CoolifyApp from "./types/coolifyApp";
 import getAllCoolifyApps from "./tools/getAllCoolifyApps";
-import getAllTemplates from "./tools/getAllTemplates";
 import openProject from "./tools/openProject";
 
 interface Preferences {
@@ -70,8 +69,6 @@ export default function Command() {
         const parsedCategories = JSON.parse(storedCategories as string);
         setCategories(parsedCategories);
 
-        const allTemplates = await getAllTemplates();
-
         // LocalStorage.setItem("templates", JSON.stringify([]));
 
         // if (allTemplates.length == 0) {
@@ -116,12 +113,14 @@ export default function Command() {
           }
         }
 
-        const projectSettings = JSON.parse((await LocalStorage.getItem<string>("projectSettings") || "[]")) as ProjectSettings[];
+        const projectSettings = JSON.parse(
+          (await LocalStorage.getItem<string>("projectSettings")) || "[]",
+        ) as ProjectSettings[];
         for (const project of allProjects) {
-          if (!projectSettings.find(p => p.projectID === project.name)) {
+          if (!projectSettings.find((p) => p.projectID === project.name)) {
             projectSettings.push({
               projectID: project.name,
-              initialVersion: "1.0.0"
+              initialVersion: "1.0.0",
             });
           }
         }
@@ -258,6 +257,7 @@ export default function Command() {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function CommitForm({ project, onSubmit }: { project: Project; onSubmit: (message: string) => void }) {
     return (
       <Form
@@ -300,7 +300,7 @@ export default function Command() {
     );
   }
 
-  function DeployToCoolifyForm({ project }: { project: Project; onSubmit: (newName: string) => void }) {
+  function DeployToCoolifyForm({ project, onSubmit }: { project: Project; onSubmit: (newName: string) => void }) {
     const [selectedCoolifyProject, setSelectedCoolifyProject] = useState<string | null>("new");
     const [coolifyProjects, setCoolifyProjects] = useState<CoolifyProject[]>([]);
     useEffect(() => {
@@ -316,6 +316,7 @@ export default function Command() {
               onSubmit={(values) => {
                 if (selectedCoolifyProject === "new") {
                   createCoolifyProject(values.newName);
+                  onSubmit(values.newName);
                 } else {
                   deployToCoolify(project, selectedCoolifyProject);
                 }
@@ -425,7 +426,7 @@ export default function Command() {
     } catch (error) {
       showToast({
         style: Toast.Style.Failure,
-        title: "Pull Failed", 
+        title: "Pull Failed",
         message: `Failed to pull: ${(error as Error).message}`,
       });
     }
@@ -435,10 +436,14 @@ export default function Command() {
     <List
       isLoading={isLoading}
       searchBarAccessory={
-        <List.Dropdown tooltip="Select Category" value={selectedCategory || ""} onChange={(value) => {
-          setSelectedCategory(value);
-          setFilteredProjects(filterProjectsByCategory(projects, value));
-        }}>
+        <List.Dropdown
+          tooltip="Select Category"
+          value={selectedCategory || ""}
+          onChange={(value) => {
+            setSelectedCategory(value);
+            setFilteredProjects(filterProjectsByCategory(projects, value));
+          }}
+        >
           <List.Dropdown.Item title="All Projects" value="" />
           {categories.map((category) => (
             <List.Dropdown.Item
@@ -452,7 +457,9 @@ export default function Command() {
       }
       onSearchTextChange={(text) => {
         const filtered = searchFilter(
-          selectedCategory ? filterProjectsByCategory(projects, selectedCategory).filter((p) => p.categoryName === selectedCategory) : projects,
+          selectedCategory
+            ? filterProjectsByCategory(projects, selectedCategory).filter((p) => p.categoryName === selectedCategory)
+            : projects,
           text,
         );
         setFilteredProjects(filtered);
@@ -471,17 +478,21 @@ export default function Command() {
           ]}
           actions={
             <ActionPanel>
-              <Action title="Open Project" onAction={() => openProject({ project: project })}
+              <Action
+                title="Open Project"
+                onAction={() => openProject({ project: project })}
                 shortcut={{ modifiers: ["cmd"], key: "o" }}
                 icon={Icon.Window}
               />
               {!categories.find((c) => c.name === project.categoryName)?.defaultAppPath.includes("Cursor") && (
-                <Action title="Open in Cursor" onAction={() => open(project.fullPath, "/Applications/Cursor.app")}
+                <Action
+                  title="Open in Cursor"
+                  onAction={() => open(project.fullPath, "/Applications/Cursor.app")}
                   shortcut={{ modifiers: ["cmd"], key: "c" }}
                   icon={Icon.Code}
                 />
               )}
-              
+
               {hasGitRepository(project) && (
                 <>
                   <Action.Push
@@ -491,7 +502,7 @@ export default function Command() {
                     target={<CommitForm project={project} onSubmit={(message) => pushToGitHub(project, message)} />}
                   />
                   <Action
-                    title="Pull from GitHub" 
+                    title="Pull from GitHub"
                     icon={Icon.Download}
                     shortcut={{ modifiers: ["cmd", "shift"], key: "g" }}
                     onAction={() => pullFromGitHub(project)}
@@ -508,30 +519,41 @@ export default function Command() {
                 title="Open in Claude Code"
                 icon={Icon.Terminal}
                 onAction={() => {
-                  execSync(`osascript -e 'tell application "Terminal" to do script "cd \\"${project.fullPath}\\" && vt claude --dangerously-skip-permissions" & activate'`);
+                  execSync(
+                    `osascript -e 'tell application "Terminal" to do script "cd \\"${project.fullPath}\\" && vt claude --dangerously-skip-permissions" & activate'`,
+                  );
                 }}
                 shortcut={{ modifiers: ["cmd"], key: "l" }}
               />
 
               {hasGitRepository(project) && (
-                <Action.OpenInBrowser title="Open Repo" url={getGitRepoUrl(project) || ""}
+                <Action.OpenInBrowser
+                  title="Open Repo"
+                  url={getGitRepoUrl(project) || ""}
                   shortcut={{ modifiers: ["cmd"], key: "r" }}
                 />
               )}
               {hasGitRepository(project) && (
-                <Action title="Delete Repo" style={Action.Style.Destructive} onAction={() => reinitGitRepo(project)}
+                <Action
+                  title="Delete Repo"
+                  style={Action.Style.Destructive}
+                  onAction={() => reinitGitRepo(project)}
                   shortcut={{ modifiers: ["cmd"], key: "d" }}
                   icon={Icon.Trash}
                 />
               )}
-              {!hasGitRepository(project) && <Action title="Create Repo" onAction={() => createGitRepo(project)}
-                shortcut={{ modifiers: ["cmd"], key: "r" }}
-                icon={Icon.Plus}
-              />}
+              {!hasGitRepository(project) && (
+                <Action
+                  title="Create Repo"
+                  onAction={() => createGitRepo(project)}
+                  shortcut={{ modifiers: ["cmd"], key: "r" }}
+                  icon={Icon.Plus}
+                />
+              )}
               {hasGitRepository(project) && (
                 <Action.Push
                   title="Deploy to Coolify"
-                  target={<DeployToCoolifyForm project={project} onSubmit={async (newName) => { }} />}
+                  target={<DeployToCoolifyForm project={project} onSubmit={async () => {}} />}
                 />
               )}
               <Action.Push
@@ -551,7 +573,11 @@ export default function Command() {
                 title="Edit Project Settings"
                 shortcut={{ modifiers: ["cmd"], key: "s" }}
                 icon={Icon.Pencil}
-                target={<EditProjectSettingsForm projectSettings={projectSettings.find((p) => p.projectID === project.name) as ProjectSettings} />}
+                target={
+                  <EditProjectSettingsForm
+                    projectSettings={projectSettings.find((p) => p.projectID === project.name) as ProjectSettings}
+                  />
+                }
               />
               <Action.Push
                 title="Edit Aliases"

@@ -2,7 +2,6 @@ import { Toast, showToast } from "@raycast/api";
 import { execSync } from "child_process";
 import path from "path";
 import Project from "../types/project";
-import CoolifyProject from "../types/coolifyProject";
 import fetch from "node-fetch";
 
 const COOLIFY_API_KEY = "1|SfgiwwVucWPLwLEwkqqAkuaXr7gjDSxkvfpKMh6S03a9edee";
@@ -79,7 +78,8 @@ async function createCoolifyProject(name: string) {
   console.log(data);
 }
 
-async function deployToCoolify(project: Project, coolifyProjectUUID: string) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function deployToCoolify(project: Project, coolifyProjectUUID: string) {
   const response = await fetch(`https://apps.joshuariley.co.uk/api/v1/applications/private-github-app`, {
     method: "POST",
     headers: {

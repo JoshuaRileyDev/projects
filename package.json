@@ -32,12 +32,12 @@
     },
     {
       "name": "createProjectWithPrompt",
-      "title": "Create Project With Prompt",
+      "title": "Create Project with Prompt",
       "description": "Creates a new project with a prompt that will be used to create the project"
     },
     {
       "name": "checkIfGithubRepo",
-      "title": "Check If Github Repo",
+      "title": "Check If GitHub Repo",
       "description": "Checks if a project has a GitHub repository"
     },
     {

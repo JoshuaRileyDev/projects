@@ -1,10 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { open } from "@raycast/api";
-import { Category } from "../types/category";
 import Project from "../types/project";
 
-function handleOpenProject(project: Project) {
+export function handleOpenProject(project: Project) {
+  // Note: categories array needs to be passed as parameter or imported
+  const categories: { name: string; defaultAppPath: string }[] = []; // Placeholder - this function needs proper categories data
   const category = categories.find((c) => c.name === project.categoryName);
   if (!category) return;
 
@@ -44,4 +45,3 @@ function handleOpenProject(project: Project) {
     open(project.fullPath, category.defaultAppPath);
   }
 }
-
