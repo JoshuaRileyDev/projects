@@ -17,6 +17,7 @@ import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
 import Project from "./types/project";
+import { escapeShellArg } from "./utils/security";
 import ProjectSettings from "./types/projectSettings";
 import { createGitRepo, getCoolifyProjects, createCoolifyProject, deployToCoolify } from "./utils/functions";
 import CoolifyProject from "./types/coolifyProject";
@@ -68,25 +69,6 @@ export default function Command() {
       if (storedCategories) {
         const parsedCategories = JSON.parse(storedCategories as string);
         setCategories(parsedCategories);
-
-        // LocalStorage.setItem("templates", JSON.stringify([]));
-
-        // if (allTemplates.length == 0) {
-        //   for (const category of parsedCategories) {
-        //     createTemplate({
-        //       id: generateRandomId(),
-        //       name: "Default",
-        //       category: category.name,
-        //       type: category.type,
-        //       command: category.command,
-        //       templatePath: category.templatePath,
-        //       autoCreateRepo: category.autoCreateRepo,
-        //       setupCommand: category.setupCommand
-        //     });
-        //     await new Promise(resolve => setTimeout(resolve, 1000));
-        //     console.log("Created template for " + category.name);
-        //   }
-        // }
 
         const allProjects: ProjectWithLastOpened[] = [];
 
@@ -192,7 +174,8 @@ export default function Command() {
 
   function pushToGitHub(project: Project, message: string) {
     try {
-      const command = `/bin/zsh -ilc "git add . && git commit -m '${message}' && git push"`;
+      const escapedMessage = escapeShellArg(message);
+      const command = `/bin/zsh -ilc "git add . && git commit -m ${escapedMessage} && git push"`;
       execSync(command, {
         cwd: project.fullPath,
         shell: "/bin/zsh",
@@ -519,8 +502,9 @@ export default function Command() {
                 title="Open in Claude Code"
                 icon={Icon.Terminal}
                 onAction={() => {
+                  const escapedPath = escapeShellArg(project.fullPath);
                   execSync(
-                    `osascript -e 'tell application "Terminal" to do script "cd \\"${project.fullPath}\\" && vt claude --dangerously-skip-permissions" & activate'`,
+                    `osascript -e 'tell application "Terminal" to do script "cd ${escapedPath} && vt claude --dangerously-skip-permissions" & activate'`,
                   );
                 }}
                 shortcut={{ modifiers: ["cmd"], key: "l" }}

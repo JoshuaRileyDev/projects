@@ -7,6 +7,7 @@ import openProject from "./openProject";
 import { createGitRepo } from "../utils/functions";
 import { Template } from "../types/template";
 import { getSlug } from "../utils/getSlug";
+import { validateProjectName, escapeShellArg } from "../utils/security";
 
 type Input = {
   /**
@@ -38,6 +39,14 @@ export default async function createProject(input: Input) {
   const name = input.name;
   const category = input.category;
   const description = input.description;
+
+  // Validate project name for security
+  if (!validateProjectName(name)) {
+    throw new Error(
+      "Project name contains invalid characters. Only alphanumeric characters, hyphens, underscores, and dots are allowed.",
+    );
+  }
+
   const preferences = getPreferenceValues<Preferences>();
   const categoryPath = path.join(preferences.projectsFolder, category);
   const projectPath = path.join(categoryPath, name);
@@ -56,7 +65,13 @@ export default async function createProject(input: Input) {
   };
 
   if (input.template.command != "" && input.template.command != null && input.template.command != undefined) {
-    const command = `/bin/zsh -ilc "${input.template.command.replaceAll("{projectName}", name).replaceAll("{projectSlug}", getSlug(name))}"`;
+    // Safely replace placeholders and escape the command
+    const processedCommand = input.template.command
+      .replaceAll("{projectName}", name)
+      .replaceAll("{projectSlug}", getSlug(name));
+
+    const escapedCommand = escapeShellArg(processedCommand);
+    const command = `/bin/zsh -ilc ${escapedCommand}`;
     const options = {
       cwd: projectPath,
       shell: "/bin/zsh",
@@ -166,7 +181,13 @@ export default async function createProject(input: Input) {
     input.template.setupCommand != null &&
     input.template.setupCommand != undefined
   ) {
-    const command = `/bin/zsh -ilc "${input.template.setupCommand.replaceAll("{projectName}", name).replaceAll("{projectSlug}", getSlug(name))}"`;
+    // Safely replace placeholders and escape the setup command
+    const processedSetupCommand = input.template.setupCommand
+      .replaceAll("{projectName}", name)
+      .replaceAll("{projectSlug}", getSlug(name));
+
+    const escapedSetupCommand = escapeShellArg(processedSetupCommand);
+    const command = `/bin/zsh -ilc ${escapedSetupCommand}`;
     const options = {
       cwd: projectPath,
       shell: "/bin/zsh",

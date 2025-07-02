@@ -1,12 +1,26 @@
 # Projects Changelog
 
-## Taskmaster integration
+## [Initial Version] - {PR_MERGE_DATE}
 
-In this release, I've added Taskmaster Integration - an AI-powered project management tool. When creating a new project, you can now provide a description which will automatically generate a detailed Product Requirements Document (PRD). The PRD is saved in `.taskmaster/docs/prd.txt` and can be used with Taskmaster to break down the project into manageable tasks.
+Added comprehensive project management extension with the following features:
 
-Key features:
+### Core Features
+- **Project Search & Management**: Browse and search through all your development projects
+- **Category Management**: Organize projects by categories (Web Apps, Mobile Apps, CLI Tools, etc.)
+- **Template System**: Create and manage project templates for quick project scaffolding
+- **Git Integration**: Create, manage, and interact with GitHub repositories
+- **Coolify Integration**: Deploy projects to Coolify hosting platform
+- **AI-Powered PRD Generation**: Generate Product Requirements Documents using Claude AI
+
+### Taskmaster Integration
 - AI-generated PRD from project description
 - Automatic creation of `.taskmaster` folder structure 
-- Integration with Taskmaster task management
+- Integration with Taskmaster task management workflow
 
-## [Initial Version] - {PR_MERGE_DATE}
+### Key Commands
+- Search Projects: Find and open projects quickly
+- Create Project: Set up new projects from templates
+- Create Category: Add new project categories
+- Clone Project: Clone GitHub repositories
+- Create Template: Build reusable project templates
+- Push to GitHub: Commit and push changes

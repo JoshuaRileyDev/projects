@@ -5,6 +5,7 @@ import {
   getPreferenceValues,
   Action,
   showToast,
+  Toast,
   open,
   BrowserExtension,
 } from "@raycast/api";
@@ -13,6 +14,7 @@ import { useEffect, useState } from "react";
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
+import { validateProjectName, validateGitHubUrl, escapeShellArg } from "./utils/security";
 
 interface Preferences {
   projectsFolder: string;
@@ -121,6 +123,26 @@ export default function Command() {
       githubURL = values.githubURL ?? "";
     }
 
+    // Validate inputs for security
+    if (!validateProjectName(name)) {
+      showToast({
+        style: Toast.Style.Failure,
+        title: "Invalid project name",
+        message:
+          "Project name contains invalid characters. Only alphanumeric characters, hyphens, underscores, and dots are allowed.",
+      });
+      return;
+    }
+
+    if (!validateGitHubUrl(githubURL)) {
+      showToast({
+        style: Toast.Style.Failure,
+        title: "Invalid GitHub URL",
+        message: "Please provide a valid GitHub repository URL.",
+      });
+      return;
+    }
+
     const category = values.category;
     const preferences = getPreferenceValues<Preferences>();
     const categoryPath = path.join(preferences.projectsFolder, category);
@@ -131,10 +153,10 @@ export default function Command() {
     }
 
     if (!fs.existsSync(projectPath)) {
-      execSync(`git clone ${githubURL} ${projectPath}`);
+      const escapedURL = escapeShellArg(githubURL);
+      const escapedPath = escapeShellArg(projectPath);
+      execSync(`git clone ${escapedURL} ${escapedPath}`);
     }
-
-    // fs.mkdirSync(projectPath, { recursive: true });
 
     const project: Project = {
       name: name,

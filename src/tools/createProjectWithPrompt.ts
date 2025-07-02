@@ -7,6 +7,7 @@ import { Category } from "../types/category";
 import openProject from "./openProject";
 import { createGitRepo } from "../utils/functions";
 import { waitUntilAppIsOpen } from "../utils/waitUntilAppOpen";
+import { validateProjectName, escapeShellArg } from "../utils/security";
 
 type Input = {
   /**
@@ -55,6 +56,14 @@ function typeAndEnter(promptText: string) {
 export default async function createProject(input: Input) {
   const name = input.name;
   const category = input.category;
+
+  // Validate project name for security
+  if (!validateProjectName(name)) {
+    throw new Error(
+      "Project name contains invalid characters. Only alphanumeric characters, hyphens, underscores, and dots are allowed.",
+    );
+  }
+
   const preferences = getPreferenceValues<Preferences>();
   const categoryPath = path.join(preferences.projectsFolder, category);
   const projectPath = path.join(categoryPath, name);
@@ -78,7 +87,8 @@ export default async function createProject(input: Input) {
 
   if (categoryDetails) {
     if (categoryDetails.command != "" && categoryDetails.command != null && categoryDetails.command != undefined) {
-      const command = `/bin/zsh -ilc "${categoryDetails.command}"`;
+      const escapedCommand = escapeShellArg(categoryDetails.command);
+      const command = `/bin/zsh -ilc ${escapedCommand}`;
       const options = {
         cwd: projectPath,
         shell: "/bin/zsh",
@@ -108,12 +118,4 @@ export default async function createProject(input: Input) {
       }, 3000);
     });
   }
-
-  // setTimeout(() => {
-  //     open("raycast://customWindowManagementCommand?&name=To%20UW%20Middle&position=topCenter&relativeWidth=0.5&relativeHeight=1.0")
-  //     setTimeout(() => {
-
-  //         typeAndEnter(input.prompt);
-  //     }, 1000);
-  // }, 1500);
 }

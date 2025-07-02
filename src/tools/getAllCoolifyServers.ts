@@ -1,18 +1,34 @@
 import { getPreferenceValues } from "@raycast/api";
 import CoolifyServer from "./../types/coolifyServer";
 
+interface Preferences {
+  projectsFolder: string;
+  coolifyToken?: string;
+  coolifyUrl?: string;
+}
+
 export default async function getAllCoolifyServers(): Promise<CoolifyServer[]> {
   const { coolifyToken, coolifyUrl } = getPreferenceValues<Preferences>();
 
-  if (!coolifyUrl) {
+  if (!coolifyUrl || !coolifyToken) {
     return [];
   }
 
-  const response = await fetch(`${coolifyUrl}/api/v1/servers`, {
-    headers: {
-      Authorization: `Bearer ${coolifyToken}`,
-    },
-  });
-  const coolifyServers = await response.json();
-  return coolifyServers;
+  try {
+    const response = await fetch(`${coolifyUrl}/api/v1/servers`, {
+      headers: {
+        Authorization: `Bearer ${coolifyToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Coolify API error: ${response.statusText}`);
+    }
+
+    const coolifyServers = await response.json();
+    return Array.isArray(coolifyServers) ? coolifyServers : [];
+  } catch (error) {
+    console.error("Error fetching Coolify servers:", error);
+    return [];
+  }
 }
