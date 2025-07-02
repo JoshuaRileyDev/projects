@@ -3,7 +3,7 @@
   "name": "projects",
   "title": "Projects",
   "description": "This manages all of my projects",
-  "icon": "extension-icon.png",
+  "icon": "extension_icon.png",
   "author": "JoshuaRileyDev",
   "categories": [
     "Developer Tools"
