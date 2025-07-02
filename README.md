@@ -1,4 +1,4 @@
-# Projects - Raycast Extension
+# Projects Manager - Raycast Extension
 
 A comprehensive project management extension for Raycast that allows you to organize, create, and manage all your development projects from one centralized location. This extension has been over a year in development and is designed for developers who want quick access to their projects with powerful automation features.
 
