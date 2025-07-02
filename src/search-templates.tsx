@@ -1,8 +1,8 @@
-import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
-import { LocalStorage } from "@raycast/api";
+import { List, ActionPanel, Action, Icon, Alert, confirmAlert } from "@raycast/api";
 import { useState, useEffect } from "react";
 import getCategories from "./tools/getCategories";
 import getAllTemplates from "./tools/getAllTemplates";
+import deleteTemplate from "./tools/deleteTemplate";
 import { Category } from "./types/category";
 import { Template } from "./types/template";
 import EditTemplateForm from "./forms/editTemplateForm";
@@ -68,22 +68,28 @@ export default function Command() {
                   title="Delete Template"
                   icon={Icon.Trash}
                   style={Action.Style.Destructive}
+                  shortcut={{ modifiers: ["cmd"], key: "d" }}
                   onAction={async () => {
-                    try {
-                      const existingTemplates = await getAllTemplates();
-                      const updatedTemplates = existingTemplates.filter((t) => t.id !== template.id);
-                      await LocalStorage.setItem("templates", JSON.stringify(updatedTemplates));
-                      setTemplates(updatedTemplates);
-                      await showToast({
-                        title: "Template Deleted",
-                        style: Toast.Style.Success,
-                      });
-                    } catch (error) {
-                      await showToast({
-                        title: "Failed to Delete Template",
-                        style: Toast.Style.Failure,
-                      });
-                    }
+                    const options: Alert.Options = {
+                      title: "Delete Template",
+                      message: `Are you sure you want to delete "${template.name}"? This action cannot be undone.`,
+                      primaryAction: {
+                        title: "Delete",
+                        style: Alert.ActionStyle.Destructive,
+                        onAction: async () => {
+                          const success = await deleteTemplate({ template });
+                          if (success) {
+                            // Refresh the templates list
+                            const updatedTemplates = await getAllTemplates();
+                            setTemplates(updatedTemplates);
+                          }
+                        },
+                      },
+                      dismissAction: {
+                        title: "Cancel",
+                      },
+                    };
+                    await confirmAlert(options);
                   }}
                 />
               </ActionPanel>

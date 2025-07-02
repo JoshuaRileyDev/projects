@@ -1,7 +1,8 @@
-import { Form, ActionPanel, Action, popToRoot, LocalStorage } from "@raycast/api";
+import { Form, ActionPanel, Action, popToRoot, LocalStorage, Icon, Alert, confirmAlert } from "@raycast/api";
 import { useEffect, useState } from "react";
 import getCategories from "../tools/getCategories";
 import getAllTemplates from "../tools/getAllTemplates";
+import deleteTemplate from "../tools/deleteTemplate";
 import { Category } from "../types/category";
 import { Template } from "../types/template";
 
@@ -18,7 +19,8 @@ export default function EditTemplateForm(props: { template: Template }) {
       actions={
         <ActionPanel>
           <Action.SubmitForm
-            title="Edit Template"
+            title="Save Template"
+            icon={Icon.Check}
             onSubmit={async (values) => {
               const templates = await getAllTemplates();
               const templateIndex = templates.findIndex((t) => t.id === props.template.id);
@@ -36,6 +38,32 @@ export default function EditTemplateForm(props: { template: Template }) {
               }
               await LocalStorage.setItem("templates", JSON.stringify(templates));
               popToRoot();
+            }}
+          />
+          <Action
+            title="Delete Template"
+            icon={Icon.Trash}
+            style={Action.Style.Destructive}
+            shortcut={{ modifiers: ["cmd"], key: "d" }}
+            onAction={async () => {
+              const options: Alert.Options = {
+                title: "Delete Template",
+                message: `Are you sure you want to delete "${props.template.name}"? This action cannot be undone.`,
+                primaryAction: {
+                  title: "Delete",
+                  style: Alert.ActionStyle.Destructive,
+                  onAction: async () => {
+                    const success = await deleteTemplate({ template: props.template });
+                    if (success) {
+                      popToRoot();
+                    }
+                  },
+                },
+                dismissAction: {
+                  title: "Cancel",
+                },
+              };
+              await confirmAlert(options);
             }}
           />
         </ActionPanel>
