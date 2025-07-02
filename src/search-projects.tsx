@@ -409,6 +409,28 @@ export default function Command() {
     return false;
   }
 
+  function pullFromGitHub(project: Project) {
+    try {
+      const command = `/bin/zsh -ilc "git pull"`;
+      execSync(command, {
+        cwd: project.fullPath,
+        shell: "/bin/zsh",
+      });
+
+      showToast({
+        style: Toast.Style.Animated,
+        title: "Pulling Changes",
+        message: "Fetching latest changes from GitHub...",
+      });
+    } catch (error) {
+      showToast({
+        style: Toast.Style.Failure,
+        title: "Pull Failed", 
+        message: `Failed to pull: ${(error as Error).message}`,
+      });
+    }
+  }
+
   return (
     <List
       isLoading={isLoading}
@@ -459,14 +481,22 @@ export default function Command() {
                   icon={Icon.Code}
                 />
               )}
-
+              
               {hasGitRepository(project) && (
-                <Action.Push
-                  title="Push to GitHub"
-                  icon={Icon.Upload}
-                  shortcut={{ modifiers: ["cmd"], key: "g" }}
-                  target={<CommitForm project={project} onSubmit={(message) => pushToGitHub(project, message)} />}
-                />
+                <>
+                  <Action.Push
+                    title="Push to GitHub"
+                    icon={Icon.Upload}
+                    shortcut={{ modifiers: ["cmd"], key: "g" }}
+                    target={<CommitForm project={project} onSubmit={(message) => pushToGitHub(project, message)} />}
+                  />
+                  <Action
+                    title="Pull from GitHub" 
+                    icon={Icon.Download}
+                    shortcut={{ modifiers: ["cmd", "shift"], key: "g" }}
+                    onAction={() => pullFromGitHub(project)}
+                  />
+                </>
               )}
               <Action
                 title="Open in Terminal"
@@ -474,6 +504,15 @@ export default function Command() {
                 onAction={() => open(project.fullPath, "/System/Applications/Utilities/Terminal.app")}
                 shortcut={{ modifiers: ["cmd"], key: "t" }}
               />
+              <Action
+                title="Open in Claude Code"
+                icon={Icon.Terminal}
+                onAction={() => {
+                  execSync(`osascript -e 'tell application "Terminal" to do script "cd \\"${project.fullPath}\\" && vt claude --dangerously-skip-permissions" & activate'`);
+                }}
+                shortcut={{ modifiers: ["cmd"], key: "l" }}
+              />
+
               {hasGitRepository(project) && (
                 <Action.OpenInBrowser title="Open Repo" url={getGitRepoUrl(project) || ""}
                   shortcut={{ modifiers: ["cmd"], key: "r" }}
