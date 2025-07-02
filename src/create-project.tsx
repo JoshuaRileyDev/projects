@@ -1,9 +1,10 @@
-import { Form, ActionPanel, LocalStorage, Action, Grid, showToast, Toast } from "@raycast/api";
+import { Form, ActionPanel, Action, Grid, showToast, Toast, getPreferenceValues } from "@raycast/api";
 import { Category } from "./types/category";
 import { useEffect, useState } from "react";
 import { Template } from "./types/template";
 import createProject from "./tools/createProject";
 import getAllTemplates from "./tools/getAllTemplates";
+import { loadCategoriesWithAutoCreation } from "./utils/categoryUtils";
 
 type Values = {
   name: string;
@@ -29,11 +30,9 @@ export default function Command() {
 
   async function loadCategoriesAndProjects() {
     try {
-      const storedCategories = await LocalStorage.getItem("categories");
-      if (storedCategories) {
-        const parsedCategories = JSON.parse(storedCategories as string);
-        setCategories(parsedCategories);
-      }
+      const { projectsFolder } = getPreferenceValues<{ projectsFolder: string }>();
+      const parsedCategories = await loadCategoriesWithAutoCreation(projectsFolder);
+      setCategories(parsedCategories);
     } catch (error) {
       console.error("Failed to load categories and projects:", error);
     }

@@ -18,6 +18,7 @@ import path from "path";
 import { execSync } from "child_process";
 import Project from "./types/project";
 import { escapeShellArg } from "./utils/security";
+import { loadCategoriesWithAutoCreation } from "./utils/categoryUtils";
 import ProjectSettings from "./types/projectSettings";
 import { createGitRepo, getCoolifyProjects, createCoolifyProject, deployToCoolify } from "./utils/functions";
 import CoolifyProject from "./types/coolifyProject";
@@ -55,7 +56,6 @@ export default function Command() {
 
   async function loadCategoriesAndProjects() {
     try {
-      const storedCategories = await LocalStorage.getItem("categories");
       const lastOpenedTimes = JSON.parse((await LocalStorage.getItem("lastOpenedTimes")) || "{}") as Record<
         string,
         number
@@ -66,8 +66,9 @@ export default function Command() {
       >;
       const { projectsFolder } = getPreferenceValues<Preferences>();
 
-      if (storedCategories) {
-        const parsedCategories = JSON.parse(storedCategories as string);
+      const parsedCategories = await loadCategoriesWithAutoCreation(projectsFolder);
+
+      if (parsedCategories.length > 0) {
         setCategories(parsedCategories);
 
         const allProjects: ProjectWithLastOpened[] = [];

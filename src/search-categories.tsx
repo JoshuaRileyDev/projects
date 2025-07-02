@@ -5,6 +5,7 @@ import { Category, CategoryType } from "./types/category";
 import path from "path";
 import fs from "fs";
 import { getPreferenceValues } from "@raycast/api";
+import { loadCategoriesWithAutoCreation } from "./utils/categoryUtils";
 
 function EditCategoryForm({ category, onEdit }: { category: Category; onEdit: (updatedCategory: Category) => void }) {
   const [selectedType, setSelectedType] = useState<CategoryType>(category.type);
@@ -97,10 +98,11 @@ export default function Command() {
 
   async function loadCategories() {
     try {
-      const storedCategories = await LocalStorage.getItem("categories");
-      if (storedCategories) {
-        const parsedCategories = JSON.parse(storedCategories as string);
-        setCategories(parsedCategories);
+      const { projectsFolder } = getPreferenceValues<{ projectsFolder: string }>();
+      const parsedCategories = await loadCategoriesWithAutoCreation(projectsFolder);
+
+      setCategories(parsedCategories);
+      if (parsedCategories.length > 0) {
         await ensureAllCategoryFolders(parsedCategories);
       }
     } catch (error) {
